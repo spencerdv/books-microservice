@@ -5,38 +5,31 @@
 import requests
 import json
 import re
-#from bs4 import BeautifulSoup
+from flask import Flask
 
-# Indigo Scrape
-search_url = 'https://www.indigo.ca/en-ca/books/best-books-of-the-year/top-10-books-by-genre/'
+app = Flask(__name__)
 
-valid_genres = ['cookbooks', 'fantasy', 'fiction', 'historical-fiction', 'horror', 'mystery', 'non-fiction',
-                'queer-voices', 'romance', 'thrillers']
+@app.route('/genre/<genre_selected>')
+def genre_response(genre_selected):
 
+    # Indigo Scrape
+    search_url = 'https://www.indigo.ca/en-ca/books/best-books-of-the-year/top-10-books-by-genre/'
 
-while True:
-    print('Please enter a genre you are most interested in.\nYou may select from: cookbooks, romance, fantasy, horror, historical-fiction, mystery, non-fiction, thrillers or queer-voices. \nYou may enter "q" to quit.')
+    valid_genres = ['cookbooks', 'fantasy', 'fiction', 'historical-fiction', 'horror', 'mystery', 'non-fiction',
+                    'queer-voices', 'romance', 'thrillers']
 
     # Obtains input from user
-    genre_selected = input()
     genre_selected = genre_selected.lower()
-    if genre_selected == 'q':
-        break
 
-    
     # Validates input from user
-    while genre_selected not in valid_genres:
-        print("That genre was not valid. \nPlease enter a genre you are most interested in.\nYou may select from: cookbooks, romance, fantasy, horror, historical-fiction, mystery, non-fiction, thrillers or queer-voices.")
-        genre_selected = input()
-        genre_selected = genre_selected.lower()
+    if genre_selected not in valid_genres:
+        return ("That genre you entered was not valid. \nPlease enter a genre you are most interested in.\nYou may select from: cookbooks, romance, fantasy, horror, historical-fiction, mystery, non-fiction, thrillers or queer-voices.")
 
     # Gets data from Indigo.com
     response = requests.get(f'{search_url}{genre_selected}/')
 
     response.json
-    #print(response)
     text = response.text
-    # print(text)
     book_list = []
 
     # Uses Regex expressions to parse through data
@@ -60,14 +53,14 @@ while True:
         if 'Indigo Exclusive Edition' in title_list[book]:
             index = int(title_list[book].index('Indigo')) - 2 
             title_list[book] = title_list[book][:index]
+        elif 'indigo exclusive edition' in title_list[book]:
+            index = int(title_list[book].index('indigo')) - 2 
+            title_list[book] = title_list[book][:index]
+        elif 'INDIGO EXCLUSIVE EDITION' in title_list[book]:
+            index = int(title_list[book].index('INDIGO')) - 2 
+            title_list[book] = title_list[book][:index]
         
     # Presents data to the user
-    print(f"The current top selling books of the {genre_selected} genre are:\n")
-    num = 1
-    for book in title_list:
-        print(f'{num}: {book}')
-        num += 1
-    print('\n')
-    
-# Farewell message
-print("Thank you for using our service!")
+    return title_list
+
+app.run(debug=True)
