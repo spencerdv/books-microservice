@@ -6,8 +6,10 @@ import requests
 import json
 import re
 from flask import Flask
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/genre/<genre_selected>')
 def genre_response(genre_selected):
